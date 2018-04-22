@@ -4,7 +4,12 @@ import java.security.NoSuchAlgorithmException;
 
 public class HashingUtil {
 
-	public static byte[] hashWithSHA(String message) {
+	/**
+	 * 
+	 * @param message
+	 * @return hash
+	 */
+	public static byte[] hashingWithSHA(String message) {
 		MessageDigest digest = null;
 		try {
 			digest = MessageDigest.getInstance("SHA-256");
