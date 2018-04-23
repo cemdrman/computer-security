@@ -2,7 +2,6 @@ import java.security.KeyPairGenerator;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
@@ -50,7 +49,7 @@ public class CryptoHelper {
 
 	/**
 	 * 
-	 * @return IVector
+	 * @return Initialization Vector
 	 */
 	public byte[] generateIV() {
 		SecureRandom random = new SecureRandom();

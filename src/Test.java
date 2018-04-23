@@ -1,11 +1,16 @@
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.util.Base64;
 
 import javax.crypto.Cipher;
+import javax.crypto.Mac;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 public class Test {
 
@@ -13,7 +18,7 @@ public class Test {
 		// Generate a 1024-bit RSA key pair
 		CryptoHelper cryptoGenerater = new CryptoHelper();
 		KeyPair keyPair = cryptoGenerater.generatePublicPrivateKeys("RSA", 1024);
-		
+
 		PrivateKey privateKey = keyPair.getPrivate();
 		PublicKey publicKey = keyPair.getPublic();
 		System.out.println("Private Key : " + privateKey.getEncoded());
@@ -21,29 +26,27 @@ public class Test {
 		Base64.Encoder encoder = Base64.getEncoder();
 		System.out.println("private:" + encoder.encodeToString(privateKey.getEncoded()));
 		System.out.println("public :" + encoder.encodeToString(publicKey.getEncoded()));
-		
-		//--Question-2
-		
-		SecretKey secretKey = cryptoGenerater.generateSymmetricKey(); 	
+
+		// --Question-2
+
+		SecretKey secretKey = cryptoGenerater.generateSymmetricKey();
 		System.out.println("Symetric Key:" + secretKey.getEncoded());
-		
-		 // encrypt the message
-        byte[] encrypted = encrypt(publicKey, "cemdirmanfenerbahçe");     
-		System.out.println("Encrypted Symetric Key: " + encrypted );
-		
+
+		// encrypt the message
+		byte[] encrypted = encrypt(publicKey, "cemdirmanfenerbahçe");
+		System.out.println("Encrypted Symetric Key: " + encrypted);
+
 		byte[] decrypted = decrypt(privateKey, encrypted);
-		
-		System.out.println("Decrypted Symetric Key: " + decrypted );
-		
-		
-		
-		//--Question-3
+
+		System.out.println("Decrypted Symetric Key: " + decrypted);
+
+		// --Question-3
 		String longMessage = "really long message, but you cant see this message.";
-		
+
 		Signature signature = Signature.getInstance("SHA256withRSA");
-		//encrypting it with KA-
+		// encrypting it with KA-
 		signature.initSign(privateKey);
-		/* Supply the Signature Object the Data to Be Signed */		
+		/* Supply the Signature Object the Data to Be Signed */
 		signature.update(longMessage.getBytes());
 		byte[] signatureBytes = signature.sign();
 		System.out.println("Singature:" + signatureBytes);
@@ -51,23 +54,62 @@ public class Test {
 		signature.initVerify(publicKey);
 		signature.update(longMessage.getBytes());
 
-	    System.out.println("Is verifyed: " + signature.verify(signatureBytes));
+		System.out.println("Is verifyed: " + signature.verify(signatureBytes));
+
+		// --Question-4
+		hmac(longMessage);
+		
+		// --Question-5
+		byte[] iv = cryptoGenerater.generateIV();
+		IvParameterSpec ivspec = new IvParameterSpec(iv);
+		Cipher ci = Cipher.getInstance("AES/CBC/PKCS5Padding");
+		//I have already secret key. and iv
+		ci.init(Cipher.ENCRYPT_MODE, secretKey, ivspec);
+		//Encrypting a message
+		String plainText = "this text is plain text for testing";
+		byte[] input = plainText.getBytes("UTF-8");
+	    byte[] encoded = ci.doFinal(input);
+	    System.out.println("Encoded PlainText: " + encoded);
+	    //Decrypting Back to a message
+	    ci.init(Cipher.DECRYPT_MODE, secretKey, ivspec);
+	    String decrytedPlainText = new String(ci.doFinal(encoded), "UTF-8");
+	    System.out.println(decrytedPlainText);
+	    
+		
 	}
-	
-	
-	
+
 	public static byte[] encrypt(PublicKey publicKey, String secretKey) throws Exception {
-        Cipher cipher = Cipher.getInstance("RSA");  
-        //SecretKeySpec k = new SecretKeySpec(publicKey.getEncoded(), "AES");
-        cipher.init(Cipher.ENCRYPT_MODE, publicKey); 
-        return cipher.doFinal(secretKey.getBytes());
-    }
-    
-    public static byte[] decrypt(PrivateKey privateKey, byte [] encrypted) throws Exception {
-        Cipher cipher = Cipher.getInstance("RSA");  
-        //SecretKeySpec k = new SecretKeySpec(privateKey.getEncoded(), "AES");
-        cipher.init(Cipher.DECRYPT_MODE, privateKey);        
-        return cipher.doFinal(encrypted);
-    }
+		Cipher cipher = Cipher.getInstance("RSA");
+		// SecretKeySpec k = new SecretKeySpec(publicKey.getEncoded(), "AES");
+		cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+		return cipher.doFinal(secretKey.getBytes());
+	}
+
+	public static byte[] decrypt(PrivateKey privateKey, byte[] encrypted) throws Exception {
+		Cipher cipher = Cipher.getInstance("RSA");
+		// SecretKeySpec k = new SecretKeySpec(privateKey.getEncoded(), "AES");
+		cipher.init(Cipher.DECRYPT_MODE, privateKey);
+		return cipher.doFinal(encrypted);
+	}
+
+	public static void hmac(String message) {
+		String secret = "secret";
+		Mac sha256_HMAC;
+		try {
+			sha256_HMAC = Mac.getInstance("HmacSHA256");
+			SecretKeySpec secret_key = new SecretKeySpec(secret.getBytes(), "HmacSHA256");
+			sha256_HMAC.init(secret_key);
+
+			String hash = Base64.getEncoder().encodeToString(sha256_HMAC.doFinal(message.getBytes()));
+			System.out.println(hash);
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidKeyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
 
 }
