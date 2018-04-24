@@ -14,7 +14,7 @@ public class CryptoHelper {
 	 * @param numBits
 	 * @return Public-Private Key
 	 */
-	public KeyPair generatePublicPrivateKeys(String keyAlgorithm, int numBits) {
+	public KeyPair generateKeyPair(String keyAlgorithm, int numBits) {
 
 		try {
 			// Get the public/private key pair
